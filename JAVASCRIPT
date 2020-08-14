@@ -1,0 +1,203 @@
+const levels = document.querySelector('.levels');
+const startBtn = document.querySelector('.startBtn');
+let started = false;
+let startable = false;
+let restartable = false;
+const memory = document.querySelector('.memory');
+let result = {
+    bestAttempts: '',
+    bestTime: '',
+    currentAttempts: 0,
+    currentTime: 0
+};
+const bestAttempts = document.querySelector('.result .bestAttempts span');
+const bestTime = document.querySelector('.result .bestTime span');
+const currentAttempts = document.querySelector('.result .currentAttempts span');
+const currentTime = document.querySelector('.result .currentTime span');
+let timer;
+const gameTime = 3600000;
+let selected = [];
+
+const createCards = level => {
+    const cardTemplate = document.querySelector('#card');
+    const cards = [];
+    for (let i = 1; i <= level; i++) {
+        for (let j = 1; j <= 2; j++) {
+            const card = document.importNode(cardTemplate.content, true);
+            card.querySelector('.back').textContent = i;
+            cards.push(card);
+        }
+    }
+    return cards;
+}
+
+function shuffleArray(arr) {
+    let ctr = arr.length;
+    let temp;
+    let index;
+    while (ctr > 0) {
+        index = Math.floor(Math.random() * ctr);
+        ctr--;
+        temp = arr[ctr];
+        arr[ctr] = arr[index];
+        arr[index] = temp;
+    }
+    return arr;
+}
+
+const resetResult = () => {
+    result.currentAttempts = 0;
+    currentAttempts.textContent = result.currentAttempts;
+}
+
+const resetTimer = () => {
+    clearInterval(timer);
+    result.currentTime = 0;
+    currentTime.textContent = '00:00:00';
+}
+
+const updateTime = (time, element) => {
+    const h = String(Math.floor((time / (1000 * 60 * 60)) % 24)).padStart(2, "0");
+    const m = String(Math.floor((time / (1000 * 60)) % 60)).padStart(2, "0");
+    const s = String(Math.floor((time / 1000)) % 60).padStart(2, "0");
+    element.textContent = `${h}:${m}:${s}`;
+}
+
+const updateBestTime = () => {
+    if (!result.bestTime || result.bestTime > result.currentTime) {
+        updateTime(result.currentTime, bestTime);
+        result.bestTime = result.currentTime;
+    }
+}
+
+const resetCards = () => {
+    let cards = Array.from(memory.children);
+    cards.forEach(card => card.classList.remove('flipped'));
+    setTimeout(() => {
+        cards = shuffleArray(cards);
+        memory.textContent = '';
+        cards.forEach(card => memory.append(card));
+    }, 600);
+}
+
+const startTimer = () => {
+    timer = setInterval(() => {
+        if (result.currentTime === gameTime) {
+            resetResult();
+            resetTimer();
+            resetCards();
+            started = false;
+            restartable = false;
+            selected.length = 0;
+            startBtn.textContent = 'play';
+            return;
+        }
+        result.currentTime += 1000;
+        updateTime(result.currentTime, currentTime);
+    }, 1000);
+}
+
+const initGame = level => {
+    let cards = createCards(level);
+    cards = shuffleArray(cards);
+    cards.forEach(card => memory.append(card));
+    currentAttempts.textContent = 0;
+    currentTime.textContent = '00:00:00';
+}
+
+const startGame = () => {
+    if (!startable) {
+        return;
+    }
+    if (!restartable) {
+        startTimer();
+        started = true;
+        restartable = true;
+        startBtn.textContent = 'restart';
+    } else {
+        resetResult();
+        resetTimer();
+        resetCards();
+        startTimer();
+        selected.length = 0;
+    }
+}
+
+const isNotSelectable = target => {
+    return !started || !target || selected.length === 2 || target.classList.contains('flipped') || result.currentTime >= gameTime;
+}
+
+const selectCard = target => {
+    target.classList.add('flipped');
+    selected.push(target);
+}
+
+const compare = () => {
+    if (selected[0].textContent === selected[1].textContent) {
+        selected.length = 0;
+        updateCurrentResult();
+    } else {
+        setTimeout(() => {
+            selected[0].classList.remove('flipped');
+            selected[1].classList.remove('flipped');
+            selected.length = 0;
+            updateCurrentResult();
+        }, 600);
+    }
+}
+
+const updateCurrentResult = () => {
+    result.currentAttempts++;
+    currentAttempts.textContent = result.currentAttempts;
+}
+
+const updateBestResult = () => {
+    if ((!result.bestAttempts && result.currentAttempts > 0) || result.bestAttempts > result.currentAttempts) {
+        result.bestAttempts = result.currentAttempts;
+        bestAttempts.textContent = result.bestAttempts;
+    }
+}
+
+const endGame = () => {
+    updateBestResult();
+    resetResult();
+    updateBestTime();
+    resetTimer();
+    resetCards();
+    started = false;
+    restartable = false;
+    startBtn.textConte
+
+
+
+	= 'play';
+}
+
+const play = e => {
+    if (isNotSelectable(e.target.closest('.card'))) {
+        return;
+    }
+    selectCard(e.target.closest('.card'));
+    if (selected[1]) {
+        compare();
+    }
+    let flipped = memory.querySelectorAll('.card.flipped');
+    if (memory.children.length === flipped.length) {
+        endGame();
+    }
+}
+
+levels.addEventListener('click', e => {
+    if (e.target.matches('button')) {
+        const level = Number(e.target.dataset.level);
+        const grid = e.target.dataset.grid;
+        initGame(level);
+        levels.parentNode.removeChild(levels);
+        memory.classList.add(grid);
+        startable = true;
+    }
+})
+
+startBtn.addEventListener('click', startGame);
+
+memory.addEventListener('click', play);
