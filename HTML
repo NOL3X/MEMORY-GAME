@@ -1,0 +1,38 @@
+<template id="card">
+        <div class="card">
+            <div class="front face"></div>
+            <div class="back face"></div>
+        </div>
+    </template>
+    <div class="cols">
+        <div class="col_1">
+            <div class="levels">
+                <p class="info">Choose <strong> difficulty </strong>.</p>
+                <div>
+                    <button data-level='6' data-grid='grid_4'>EASY</button>
+                    <button data-level='8' data-grid='grid_4'>MEDIUM</button>
+                    <button data-level='10' data-grid='grid_5'>HARD</button>
+                </div>
+            </div>
+            <div class="memory"></div>
+        </div>
+        <div class="col_2">
+            <div class="result">
+                <p class="heading">Scores:</p>
+                <div class="info bestAttempts">
+                    <p><strong>Best</strong> number of attempts: <span></span></p>
+                </div>
+                <div class="info bestTime">
+                    <p><strong>Best</strong> time: <span></span></p>
+                </div>
+                <div class="info currentAttempts">
+                    <p><strong>Current</strong> number of attempts: <span></span></p>
+                </div>
+                <div class="info currentTime">
+                    <p><strong>Current </strong> time: <span></span></p>
+                </div>
+            </div>
+            <button class="btn startBtn">Play</button>
+            <p class="info">Specific time: <strong>5 minutes</strong></p>
+        </div>
+    </div>
